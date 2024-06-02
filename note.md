@@ -1,0 +1,3 @@
+docker build -t epic-stack . -f other/Dockerfile --build-arg COMMIT_SHA=`git rev-parse --short HEAD` # builds the docker container
+mkdir ~/litefs # mountpoint for your sqlite databases
+docker run -d -p 8081:8081 -e SESSION_SECRET='somesecret' -e INTERNAL_COMMAND_TOKEN='somesecret' -e HONEYPOT_SECRET='somesecret' -e FLY='false' -v ~/litefs:/litefs epic-stack     # Runs the docker container. http://localhost:8081 should now point to your docker instance. ~/litefs directory has the sqlite databases
