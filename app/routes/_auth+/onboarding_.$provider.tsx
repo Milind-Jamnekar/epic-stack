@@ -30,6 +30,7 @@ import {
 	signupWithConnection,
 	requireAnonymous,
 } from '#app/utils/auth.server.ts'
+import { connectionSessionStorage } from '#app/utils/connections.server'
 import { ProviderNameSchema } from '#app/utils/connections.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
@@ -83,7 +84,7 @@ async function requireData({
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
 	const { email } = await requireData({ request, params })
-	const authSession = await authSessionStorage.getSession(
+	const connectionSession = await connectionSessionStorage.getSession(
 		request.headers.get('cookie'),
 	)
 	const verifySession = await verifySessionStorage.getSession(
@@ -91,7 +92,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 	)
 	const prefilledProfile = verifySession.get(prefilledProfileKey)
 
-	const formError = authSession.get(authenticator.sessionErrorKey)
+	const formError = connectionSession.get(authenticator.sessionErrorKey)
 	const hasError = typeof formError === 'string'
 
 	return json({
@@ -129,7 +130,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 				})
 				return
 			}
-		}).transform(async data => {
+		}).transform(async (data) => {
 			const session = await signupWithConnection({
 				...data,
 				email,

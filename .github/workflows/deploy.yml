@@ -146,6 +146,8 @@ jobs:
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: '50'
 
       - name: 👀 Read app name
         uses: SebRollen/toml-action@v1.2.0
@@ -153,12 +155,6 @@ jobs:
         with:
           file: 'fly.toml'
           field: 'app'
-
-      # move Dockerfile to root
-      - name: 🚚 Move Dockerfile
-        run: |
-          mv ./other/Dockerfile ./Dockerfile
-          mv ./other/.dockerignore ./.dockerignore
 
       - name: 🎈 Setup Fly
         uses: superfly/flyctl-actions/setup-flyctl@1.5

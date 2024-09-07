@@ -70,7 +70,7 @@ export const test = base.extend<{
 }>({
 	insertNewUser: async ({}, use) => {
 		let userId: string | undefined = undefined
-		await use(async options => {
+		await use(async (options) => {
 			const user = await getOrInsertUser(options)
 			userId = user.id
 			return user
@@ -79,7 +79,7 @@ export const test = base.extend<{
 	},
 	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
-		await use(async options => {
+		await use(async (options) => {
 			const user = await getOrInsertUser(options)
 			userId = user.id
 			const session = await prisma.session.create({
@@ -94,10 +94,14 @@ export const test = base.extend<{
 			authSession.set(sessionKey, session.id)
 			const cookieConfig = setCookieParser.parseString(
 				await authSessionStorage.commitSession(authSession),
-			) as any
-			await page
-				.context()
-				.addCookies([{ ...cookieConfig, domain: 'localhost' }])
+			)
+			const newConfig = {
+				...cookieConfig,
+				domain: 'localhost',
+				expires: cookieConfig.expires?.getTime(),
+				sameSite: cookieConfig.sameSite as 'Strict' | 'Lax' | 'None',
+			}
+			await page.context().addCookies([newConfig])
 			return user
 		})
 		await prisma.user.deleteMany({ where: { id: userId } })
@@ -117,7 +121,7 @@ export const test = base.extend<{
 			ghUser = newGitHubUser
 			return newGitHubUser
 		})
-		
+
 		const user = await prisma.user.findUniqueOrThrow({
 			select: { id: true, name: true },
 			where: { email: normalizeEmail(ghUser!.primaryEmail) },
@@ -152,7 +156,7 @@ export async function waitFor<ReturnValue>(
 		} catch (e: unknown) {
 			lastError = e
 		}
-		await new Promise(r => setTimeout(r, 100))
+		await new Promise((r) => setTimeout(r, 100))
 	}
 	throw lastError
 }

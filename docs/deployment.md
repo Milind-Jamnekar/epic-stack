@@ -55,12 +55,12 @@ Prior to your first deployment, you'll need to do a few things:
   [your repo secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
   with the name `FLY_API_TOKEN`.
 
-- Add a `SESSION_SECRET`, `INTERNAL_COMMAND_TOKEN`, and `HONEYPOT_SECRET` to
-  your fly app secrets, to do this you can run the following commands:
+- Add a `SESSION_SECRET` and `HONEYPOT_SECRET` to your fly app secrets, to do
+  this you can run the following commands:
 
   ```sh
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) INTERNAL_COMMAND_TOKEN=$(openssl rand -hex 32) HONEYPOT_SECRET=$(openssl rand -hex 32) --app [YOUR_APP_NAME]
-  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) INTERNAL_COMMAND_TOKEN=$(openssl rand -hex 32) HONEYPOT_SECRET=$(openssl rand -hex 32) --app [YOUR_APP_NAME]-staging
+  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) HONEYPOT_SECRET=$(openssl rand -hex 32) --app [YOUR_APP_NAME]
+  fly secrets set SESSION_SECRET=$(openssl rand -hex 32) HONEYPOT_SECRET=$(openssl rand -hex 32) --app [YOUR_APP_NAME]-staging
   ```
 
   > **Note**: If you don't have openssl installed, you can also use
@@ -130,25 +130,11 @@ Find instructions for this optional step in [the database docs](./database.md).
 
 ## Deploying locally using fly
 
-If you'd like to deploy locally you definitely can. You need to (temporarily)
-move the `Dockerfile` and the `.dockerignore` to the root of the project first.
-Then you can run the deploy command:
+If you'd like to deploy locally, just run fly's deploy command:
 
 ```
-mv ./other/Dockerfile Dockerfile
-mv ./other/.dockerignore .dockerignore
 fly deploy
 ```
-
-Once it's done, move the files back:
-
-```
-mv Dockerfile ./other/Dockerfile
-mv .dockerignore ./other/.dockerignore
-```
-
-You can keep the `Dockerfile` and `.dockerignore` in the root if you prefer,
-just make sure to remove the move step from the `.github/workflows/deploy.yml`.
 
 ## Deploying locally using docker/podman
 
@@ -190,7 +176,14 @@ node application (on port 8081).
 Helpful commands:
 
 ```
-docker build -t epic-stack . -f other/Dockerfile --build-arg COMMIT_SHA=`git rev-parse --short HEAD` # builds the docker container
-mkdir ~/litefs # mountpoint for your sqlite databases
-docker run -d -p 8081:8081 -e SESSION_SECRET='somesecret' -e INTERNAL_COMMAND_TOKEN='somesecret' -e HONEYPOT_SECRET='somesecret' -e FLY='false' -v ~/litefs:/litefs epic-stack     # Runs the docker container. http://localhost:8081 should now point to your docker instance. ~/litefs directory has the sqlite databases
+# builds the docker container
+docker build -t epic-stack . -f other/Dockerfile --build-arg COMMIT_SHA=`git rev-parse --short HEAD`
+
+# mountpoint for your sqlite databases
+mkdir ~/litefs
+
+# Runs the docker container.
+docker run -d -p 8081:8081 -e SESSION_SECRET='somesecret' -e HONEYPOT_SECRET='somesecret' -e FLY='false' -v ~/litefs:/litefs epic-stack
+
+# http://localhost:8081 should now point to your docker instance. ~/litefs directory has the sqlite databases
 ```
